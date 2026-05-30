@@ -48,7 +48,7 @@ https://github.com/termux/termux-app/releases
 **Option A — GitHub se (recommended):**
 ```bash
 # Termux open karo, ye paste karo:
-pkg install curl -y
+pkg install curl -y && pkg install wget -y
 
 wget https://raw.githubusercontent.com/HunterisLive-1/Turmux-setup/main/hunter.sh
 
