@@ -43,6 +43,12 @@ https://github.com/termux/termux-app/releases
 
 ---
 
+## Sabse pahle ye run karo
+
+```
+apt update && apt full-upgrade -y
+```
+
 ## Step 1: Scripts Download Karo
 
 **Option A — GitHub se (recommended):**
