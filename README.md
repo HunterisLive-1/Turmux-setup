@@ -32,14 +32,12 @@ ubuntuhunter.sh →  Ubuntu ke andar run karo  (Same setup Ubuntu ke liye)
 
 > ⚠️ **Play Store wala mat lena — outdated hai!**
 
-**F-Droid se install karo:**
-```
-https://f-droid.org → "Termux" search karo → Install
-```
-Ya GitHub Releases se direct APK:
-```
-https://github.com/termux/termux-app/releases
-```
+
+** Termux Yaha se install karo **👇 
+. [Download Termux](https://github.com/HunterisLive-1/Turmux-setup/releases/download/V1.1/Termux.apk)
+
+** Code editor install **
+ [Download Code-editor](#coming)
 
 ---
 
