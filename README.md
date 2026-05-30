@@ -50,8 +50,9 @@ https://github.com/termux/termux-app/releases
 # Termux open karo, ye paste karo:
 pkg install curl -y
 
-curl -O https://raw.githubusercontent.com/HunterisLive-1/termux-setup/main/hunter.sh
-curl -O https://raw.githubusercontent.com/HunterisLive-1/termux-setup/main/ubuntuhunter.sh
+wget https://raw.githubusercontent.com/HunterisLive-1/Turmux-setup/main/hunter.sh
+
+wget https://raw.githubusercontent.com/HunterisLive-1/Turmux-setup/main/ubuntuhunter.sh
 ```
 
 **Option B — Manual:**
