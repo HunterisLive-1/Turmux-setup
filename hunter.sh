@@ -13,7 +13,7 @@ clear
 
 echo -e "${PURPLE}${BOLD}"
 echo "╔═══════════════════════════════════════════════════╗"
-echo "║     HunterIsLive — Termux Setup Script v1.0      ║"
+echo "║     HunterIsLive — Termux Setup Script v1.1      ║"
 echo "╠═══════════════════════════════════════════════════╣"
 echo "║  YouTube : @HunterIsLive                         ║"
 echo "║  GitHub  : github.com/HunterisLive-1             ║"
@@ -23,15 +23,14 @@ echo -e "${NC}"
 sleep 1
 
 # ─── Banner Name ─────────────────────────────────────────────────────
-echo -e "${CYAN}${BOLD}Ek kaam karo — apna naam/handle enter karo:${NC}"
-echo -e "${YELLOW}(Figlet banner mein ye naam dikhega, space mat use karna)${NC}"
-echo -e "${YELLOW}Example: Hunter  |  Rahul  |  Dev${NC}"
+echo -e "${CYAN}${BOLD}Apna naam/handle enter karo (figlet banner ke liye):${NC}"
+echo -e "${YELLOW}Example: Hunter  |  Rahul  |  Dev  (space mat use karna)${NC}"
 echo ""
 printf "➜ Your Name: "
 read USER_BANNER_NAME
 [ -z "$USER_BANNER_NAME" ] && USER_BANNER_NAME="Hunter"
 
-# Save name to sdcard so ubuntuhunter.sh can reuse it
+# Save for Ubuntu script
 mkdir -p /sdcard 2>/dev/null
 echo "$USER_BANNER_NAME" > /sdcard/hunter_config.txt
 
@@ -48,38 +47,54 @@ sleep 3
 
 # ─── Step 2: System Update ───────────────────────────────────────────
 echo -e "${CYAN}${BOLD}[2/9] System update & upgrade...${NC}"
-echo -e "${YELLOW}      (Thoda time lagega, Enter dabaate raho agar koi prompt aaye)${NC}"
 pkg update -y && pkg upgrade -y
 
 # ─── Step 3: Core Packages ───────────────────────────────────────────
 echo -e "${CYAN}${BOLD}[3/9] Core packages install ho rahe hain...${NC}"
 pkg install -y git curl wget zip unzip tar nano vim figlet ruby zsh python nodejs proot-distro openssh
 
-echo -e "${CYAN}      lolcat install ho raha hai (ruby gem)...${NC}"
+echo -e "${CYAN}      lolcat install ho raha hai...${NC}"
 gem install lolcat
 
 # ─── Step 4: Python Tools ────────────────────────────────────────────
+# Note: fastapi/pydantic-core skip — Rust chahiye jo Termux mein nahi
+# Woh Ubuntu mein install honge
 echo -e "${CYAN}${BOLD}[4/9] Python tools install ho rahe hain...${NC}"
-pip install --upgrade pip setuptools wheel
-pip install requests httpx flask fastapi uvicorn python-dotenv rich
+pip install requests httpx flask uvicorn python-dotenv rich
 
-echo -e "${CYAN}      uv (ultra-fast pip alternative) install ho raha hai...${NC}"
-curl -LsSf https://astral.sh/uv/install.sh | sh 2>/dev/null || pip install uv
+# uv — SAHI tarika: install script se (pip se nahi, Rust build fail hota)
+echo -e "${CYAN}      uv (fast pip alternative) install ho raha hai...${NC}"
+if command -v curl &>/dev/null; then
+    curl -LsSf https://astral.sh/uv/install.sh | sh 2>/dev/null \
+        && echo -e "${GREEN}      ✓ uv installed via curl${NC}" \
+        || echo -e "${YELLOW}      uv skip — baad mein: wget -qO- https://astral.sh/uv/install.sh | sh${NC}"
+else
+    wget -qO- https://astral.sh/uv/install.sh | sh 2>/dev/null \
+        && echo -e "${GREEN}      ✓ uv installed via wget${NC}" \
+        || echo -e "${YELLOW}      uv skip — ignore karo${NC}"
+fi
 
 # ─── Step 5: Node.js Global Tools ────────────────────────────────────
 echo -e "${CYAN}${BOLD}[5/9] Node.js global tools install ho rahe hain...${NC}"
-npm install -g nodemon pm2 yarn serve
+npm install -g nodemon pm2 serve 2>/dev/null || true
 
-# ─── Step 6: Oh My Zsh ───────────────────────────────────────────────
-echo -e "${CYAN}${BOLD}[6/9] Oh My Zsh install ho raha hai...${NC}"
+# ─── Step 6: Nerd Font — P10k ke liye ZAROORI ────────────────────────
+echo -e "${CYAN}${BOLD}[6/9] Nerd Font install ho raha hai (P10k icons ke liye)...${NC}"
+mkdir -p ~/.termux
+wget -q -O ~/.termux/font.ttf \
+  "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf" \
+  && echo -e "${GREEN}      ✓ MesloLGS Nerd Font installed${NC}" \
+  || echo -e "${YELLOW}      Font download failed — baad mein manually karo${NC}"
+
+# ─── Step 7: Oh My Zsh ───────────────────────────────────────────────
+echo -e "${CYAN}${BOLD}[7/9] Oh My Zsh + Powerlevel10k + Plugins...${NC}"
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended \
+    || sh -c "$(wget -qO- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 else
     echo -e "${YELLOW}      Oh My Zsh already installed — skip${NC}"
 fi
 
-# ─── Step 7: Powerlevel10k + AutoSuggestions ─────────────────────────
-echo -e "${CYAN}${BOLD}[7/9] Powerlevel10k theme install ho raha hai...${NC}"
 P10K_DIR="${HOME}/.oh-my-zsh/custom/themes/powerlevel10k"
 if [ ! -d "$P10K_DIR" ]; then
     git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$P10K_DIR"
@@ -87,7 +102,6 @@ else
     echo -e "${YELLOW}      Powerlevel10k already installed — skip${NC}"
 fi
 
-echo -e "${CYAN}      zsh-autosuggestions plugin install ho raha hai...${NC}"
 AS_DIR="${HOME}/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
 if [ ! -d "$AS_DIR" ]; then
     git clone https://github.com/zsh-users/zsh-autosuggestions "$AS_DIR"
@@ -97,15 +111,12 @@ fi
 
 # ─── Step 8: Configure .zshrc ────────────────────────────────────────
 echo -e "${CYAN}${BOLD}[8/9] .zshrc configure ho raha hai...${NC}"
-
-# Old P10k cache hatao (warning fix)
 rm -f ~/.cache/p10k-instant-prompt-*.zsh 2>/dev/null
 
-# Static part — quoted heredoc (no variable expansion here)
-# $HOME, $ZSH etc. will expand when .zshrc is sourced later
+# Static part — quoted heredoc (no variable expansion)
 cat > ~/.zshrc << 'STATIC_ZSHRC'
 # ═══════════════════════════════════════════════════
-#  HunterIsLive — Termux ZSH Config
+#  HunterIsLive — Termux ZSH Config v1.1
 #  YouTube : @HunterIsLive | getmaya.online
 # ═══════════════════════════════════════════════════
 
@@ -123,7 +134,7 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 plugins=(git zsh-autosuggestions)
 source $ZSH/oh-my-zsh.sh
 
-# ===== ALIASES — TERMUX =====
+# ===== ALIASES =====
 alias c='clear'
 alias update='pkg update && pkg upgrade'
 alias py='python'
@@ -137,7 +148,7 @@ export PATH="$HOME/.local/bin:$PATH"
 export PATH=/data/data/com.termux/files/home/.opencode/bin:$PATH
 STATIC_ZSHRC
 
-# Dynamic part — unquoted heredoc ($USER_BANNER_NAME expands here)
+# Dynamic part — $USER_BANNER_NAME expands here
 cat >> ~/.zshrc << DYNAMIC_ZSHRC
 
 # ===== HUNTER BANNER =====
@@ -146,31 +157,29 @@ figlet -c -f big "$USER_BANNER_NAME" | lolcat
 echo -e "\e[0m"
 # =========================
 
-# P10k config
+# P10k config (p10k configure se generate hoti hai)
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 DYNAMIC_ZSHRC
 
 # ─── Step 9: Final Setup ─────────────────────────────────────────────
 echo -e "${CYAN}${BOLD}[9/9] Final setup...${NC}"
 
-# MOTD hatao (Welcome to Termux message band)
 touch ~/.hushlogin
-echo -e "${GREEN}      ✓ MOTD disabled (Welcome to Termux band)${NC}"
+echo -e "${GREEN}      ✓ MOTD disabled${NC}"
 
-# Default shell ZSH
-chsh -s zsh 2>/dev/null && echo -e "${GREEN}      ✓ ZSH default shell set${NC}" || true
+chsh -s zsh 2>/dev/null && echo -e "${GREEN}      ✓ ZSH default shell${NC}" || true
+
+termux-reload-settings 2>/dev/null && echo -e "${GREEN}      ✓ Font applied${NC}" || true
 
 # Ubuntu install
-echo -e "${CYAN}      Ubuntu container install ho raha hai...${NC}"
-echo -e "${YELLOW}      (~300-500MB download, time lagega)${NC}"
 proot-distro install ubuntu 2>/dev/null \
   && echo -e "${GREEN}      ✓ Ubuntu installed${NC}" \
-  || echo -e "${YELLOW}      Ubuntu already installed ya skip karo${NC}"
+  || echo -e "${YELLOW}      Ubuntu already installed${NC}"
 
-# Copy ubuntuhunter.sh to sdcard if it exists
+# ubuntuhunter.sh copy to sdcard
 if [ -f "$(dirname $0)/ubuntuhunter.sh" ]; then
     cp "$(dirname $0)/ubuntuhunter.sh" /sdcard/ubuntuhunter.sh
-    echo -e "${GREEN}      ✓ ubuntuhunter.sh copied to /sdcard/${NC}"
+    echo -e "${GREEN}      ✓ ubuntuhunter.sh → /sdcard/${NC}"
 fi
 
 # ─── Done! ───────────────────────────────────────────────────────────
@@ -180,16 +189,18 @@ echo "╔═══════════════════════�
 echo "║   ✅  TERMUX SETUP COMPLETE!                      ║"
 echo "╠═══════════════════════════════════════════════════╣"
 echo "║                                                   ║"
-echo -e "║   Banner Name : ${BOLD}${USER_BANNER_NAME}${NC}${GREEN}"
+echo "║   Ab ye karo (important!):                       ║"
 echo "║                                                   ║"
-echo "║   Next — Ubuntu Setup karo:                      ║"
-echo "║   1.  proot-distro login ubuntu                  ║"
-echo "║   2.  apt update && apt install curl -y          ║"
-echo "║   3.  bash /storage/emulated/0/ubuntuhunter.sh   ║"
+echo "║   1. Termux restart karo                         ║"
+echo "║   2. ZSH open hone par: p10k configure           ║"
+echo "║   3. Wizard mein style choose karo               ║"
+echo "║                                                   ║"
+echo "║   Ubuntu Setup:                                  ║"
+echo "║   → proot-distro login ubuntu                    ║"
+echo "║   → bash /storage/emulated/0/ubuntuhunter.sh     ║"
 echo "║                                                   ║"
 echo "║   YouTube : @HunterIsLive                        ║"
 echo "║   Website : getmaya.online                       ║"
 echo "╚═══════════════════════════════════════════════════╝"
 echo -e "${NC}"
-echo -e "${YELLOW}${BOLD}Ab Termux restart karo — enjoy! 🔥${NC}"
-
+echo -e "${YELLOW}${BOLD}Termux restart karo, phir 'p10k configure' run karo! 🔥${NC}"
