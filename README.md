@@ -37,7 +37,7 @@ ubuntuhunter.sh →  Ubuntu ke andar run karo  (Same setup Ubuntu ke liye)
 . [Download Termux](https://github.com/HunterisLive-1/Turmux-setup/releases/download/V1.1/Termux.apk)
 
 ** Code editor install **
- [Download Code-editor](#coming)
+ [Download Code-editor](https://github.com/HunterisLive-1/Turmux-setup/releases/download/V1.1/Code.Editor.apk)
 
 ---
 
