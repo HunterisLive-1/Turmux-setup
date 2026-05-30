@@ -46,9 +46,8 @@ apt install -y \
     git curl wget zip unzip tar nano vim \
     figlet ruby zsh \
     python3 python3-pip python3-venv \
-    nodejs npm \
     build-essential ca-certificates
-
+    
 echo -e "${CYAN}      lolcat install ho raha hai...${NC}"
 gem install lolcat
 
@@ -64,8 +63,14 @@ wget -qO- https://astral.sh/uv/install.sh | sh 2>/dev/null \
   || echo -e "${YELLOW}      uv skip${NC}"
 
 # ─── Step 4: Node.js Global Tools ────────────────────────────────────
-echo -e "${CYAN}${BOLD}[4/8] Node.js global tools...${NC}"
+echo -e "${CYAN}${BOLD}[4/8] Node.js (nvm) install ho raha hai...${NC}"
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+nvm install --lts
+nvm use --lts
 npm install -g nodemon pm2 serve 2>/dev/null || true
+echo -e "${GREEN}      ✓ Node.js $(node -v) via nvm${NC}"
 
 # ─── Step 5: Oh My Zsh + P10k + Plugins ─────────────────────────────
 echo -e "${CYAN}${BOLD}[5/8] Oh My Zsh + Powerlevel10k + Plugins...${NC}"
@@ -124,6 +129,10 @@ alias activate='source ~/venv/bin/activate'
 
 export PATH="$HOME/.cargo/bin:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
+
+# NVM
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
 UBUNTU_STATIC
 
 cat >> ~/.zshrc << UBUNTU_DYNAMIC
