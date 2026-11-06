@@ -1,16 +1,17 @@
-# 📱 Termux Ultimate Setup Guide — by HunterIsLive
+# 📱 Termux Ultimate Setup Guide — by The Hunter Ai
 
-> **YouTube:** [@HunterIsLive](https://youtube.com/@HunterIsLive)  
+> **YouTube:** [@TheHunter-AI](https://youtube.com/@TheHunter-AI)  
 > **Website:** [getmaya.online](https://getmaya.online)  
 > **GitHub:** [HunterisLive-1](https://github.com/HunterisLive-1)
 
 ---
 
-## 🚀 TL;DR — Do it fast (2 scripts, done)
+## 🚀 TL;DR — Do it fast (3 scripts, done)
 
 ```
-hunter.sh       →  Termux mein run karo  (ZSH + P10k + Python + Node + Ubuntu install)
-ubuntuhunter.sh →  Ubuntu ke andar run karo  (Same setup Ubuntu ke liye)
+hunter.sh        →  Termux mein run karo  (ZSH + P10k + Python + Node + Ubuntu install)
+ubuntuhunter.sh  →  Ubuntu ke andar run karo  (Same setup Ubuntu ke liye)
+androidhunter.sh →  Termux mein run karo  (Java + Gradle + Android SDK → phone pe hi APK)
 ```
 
 ---
@@ -18,19 +19,22 @@ ubuntuhunter.sh →  Ubuntu ke andar run karo  (Same setup Ubuntu ke liye)
 ## 📋 Table of Contents
 
 1. [Termux Install karo](#step-0-termux-install-karo)
-2. [Scripts Download karo](#step-1-scripts-download-karo)
+2. [Script Download karo](#step-1-script-download-karo)
 3. [hunter.sh run karo](#step-2-huntersh-run-karo-termux-setup)
 4. [Ubuntu Setup](#step-3-ubuntuhuntersh-run-karo-ubuntu-setup)
-5. [Kya Kya Install Hota Hai](#-kya-kya-install-hota-hai)
-6. [Aliases Reference](#-aliases-reference)
-7. [Manual Commands](#-manual-commands-reference)
-8. [Troubleshooting](#-troubleshooting)
+5. [Android App Setup](#step-4-androidhuntersh-run-karo-app-banane-ka-setup)
+6. [Kya Kya Install Hota Hai](#-kya-kya-install-hota-hai)
+7. [Aliases Reference](#-aliases-reference)
+8. [Manual Commands](#-manual-commands-reference)
+9. [Troubleshooting](#-troubleshooting)
 
 ---
 
 ## Step 0: Termux Install Karo
 
 > ⚠️ **Play Store wala mat lena — outdated hai!**
+>
+> 📦 Teeno scripts milake phone me **~6 GB khali jagah** chahiye (Termux + Ubuntu ~4 GB, Android SDK + Gradle ~1.5 GB). 6 GB+ RAM wala phone best.
 
 
 ** Termux Yaha se install karo **👇 
@@ -41,57 +45,48 @@ ubuntuhunter.sh →  Ubuntu ke andar run karo  (Same setup Ubuntu ke liye)
 
 ---
 
-## Sabse pahle ye run karo
+## Step 1: Script Download Karo
 
-```
-apt update && apt full-upgrade -y
-```
-
-## Step 1: Scripts Download Karo
-
-**Option A — GitHub se (recommended):**
 ```bash
 # Termux open karo, ye paste karo:
-pkg install curl -y && pkg install wget -y
-
-wget https://raw.githubusercontent.com/HunterisLive-1/Turmux-setup/main/hunter.sh
-
-wget https://raw.githubusercontent.com/HunterisLive-1/Turmux-setup/main/ubuntuhunter.sh
+curl -LO https://raw.githubusercontent.com/HunterisLive-1/Turmux-setup/main/hunter.sh
 ```
 
-**Option B — Manual:**
-- `hunter.sh` aur `ubuntuhunter.sh` dono files `/sdcard/` mein copy karo
+> Pehle `apt update` / `pkg upgrade` chalane ki zaroorat **nahi** — script khud karta hai, bina koi sawaal pooche.
+> Baaki do scripts (`ubuntuhunter.sh`, `androidhunter.sh`) bhi hunter.sh khud download kar leta hai.
 
 ---
 
 ## Step 2: hunter.sh Run Karo (Termux Setup)
 
 ```bash
-chmod +x hunter.sh
 bash hunter.sh
 ```
 
 **Script kya karta hai step by step:**
 
 ```
-[1/9]  Storage access (termux-setup-storage)
-[2/9]  System update & upgrade
-[3/9]  Core packages: git curl wget nano vim figlet ruby zsh python nodejs proot-distro
-       + lolcat (gem install)
-[4/9]  Python tools: pip uv requests flask fastapi uvicorn python-dotenv rich
-[5/9]  Node.js global: nodemon pm2 yarn serve
-[6/9]  Oh My Zsh install
-[7/9]  Powerlevel10k theme + zsh-autosuggestions plugin
-[8/9]  .zshrc configure (theme + plugins + aliases + banner)
-[9/9]  MOTD disable + ZSH default shell + Ubuntu install
+[1/9]  Storage access (popup aayega → Allow)
+[2/9]  Stable mirror + system update & upgrade (bina sawaal)
+[3/9]  Core packages: git curl wget nano vim figlet ruby zsh python nodejs
+       proot-distro openssh uv + lolcat
+[4/9]  Python tools: requests httpx flask uvicorn python-dotenv rich
+[5/9]  Node.js global: nodemon pm2 serve yarn
+[6/9]  Nerd Font (P10k icons ke liye)
+[7/9]  Oh My Zsh + Powerlevel10k + zsh-autosuggestions
+[8/9]  .zshrc configure (theme + aliases + banner)
+[9/9]  ZSH default shell + Ubuntu install + baaki 2 scripts download
 ```
 
 **Script ke beech mein:**
 - Tumhara naam puchha jayega → banner ke liye (example: Hunter)
-- `/sdcard/` pe ek permission popup aayega → Allow karo
-- Ubuntu download hoga (~300-500MB) — time lagega
+- Storage ka popup aayega → **Allow** dabao
+- Ubuntu ab chhota download hai (kuch MB), jaldi ho jaata hai
+- Kul time: ~5-10 min (internet pe depend)
 
-**Complete hone ke baad Termux restart karo.**
+**Aakhir mein** script sach batata hai: sab theek hua to `TERMUX SETUP COMPLETE!`, kuch fail hua to uska naam dikhata hai. Fail ho to internet check karke `bash hunter.sh` dobara chalao — jo ho chuka hai wo skip hoga.
+
+**Complete hone ke baad Termux band karke kholo, phir `p10k configure` chalao.**
 
 ---
 
@@ -101,32 +96,68 @@ bash hunter.sh
 # Termux mein Ubuntu mein jao:
 proot-distro login ubuntu
 
-# Package manager update karo pehle:
-apt update && apt install curl bash -y
-
 # Script run karo:
-bash /storage/emulated/0/ubuntuhunter.sh
+bash /sdcard/ubuntuhunter.sh
 ```
 
 **Script kya karta hai:**
 
 ```
 [1/8]  apt update & upgrade
-[2/8]  Core packages: git curl figlet ruby zsh python3 python3-pip nodejs npm
-       + lolcat
-[3/8]  Python tools: uv requests flask fastapi uvicorn rich
-[4/8]  Node.js global: nodemon pm2 yarn serve
-[5/8]  Oh My Zsh install
-[6/8]  Powerlevel10k + zsh-autosuggestions
-[7/8]  Ubuntu .zshrc configure (banner mein clear → sirf Ubuntu banner dikhe)
-[8/8]  .bashrc mein auto ZSH launch set
+[2/8]  Core packages: git curl figlet ruby zsh python3 python3-venv
+       build-essential tzdata + lolcat + phone wala time zone
+[3/8]  Python tools ~/venv mein: requests httpx flask fastapi uvicorn rich + uv
+[4/8]  Node.js LTS (nvm) + nodemon pm2 serve yarn
+[5/8]  Oh My Zsh + Powerlevel10k + zsh-autosuggestions
+[6/8]  Ubuntu .zshrc (venv apne aap chalu, banner)
+[7/8]  .p10k.zsh pehle se ready (wizard nahi)
+[8/8]  .bashrc mein auto ZSH launch
 ```
+
+Kul time: ~10 min.
+
+> **Python note:** Ubuntu 24.04+ system Python mein `pip install` mana karta hai (externally-managed-environment).
+> Isliye sab `~/venv` mein jaata hai, aur Ubuntu khulte hi `~/venv` chalu hota hai — `pip install naam` seedha chalega.
 
 **Complete hone ke baad:**
 ```bash
 exit          # Ubuntu se bahar aao
-ubntu         # Wapas Ubuntu mein jao
+ubntu         # Wapas Ubuntu mein jao (pehli baar ~1 min lagta hai)
               # ✅ Sirf Ubuntu banner dikhega, clean!
+```
+
+---
+
+## Step 4: androidhunter.sh Run Karo (App Banane Ka Setup)
+
+Phone pe hi Android app (APK) banane ka saaman. **Ye Termux mein chalta hai, Ubuntu ke andar nahi.**
+
+```bash
+exit                      # Ubuntu mein ho to pehle bahar aao
+bash ~/androidhunter.sh
+```
+
+**Script kya karta hai:**
+
+```
+[1/6]  Java 17 (openjdk-17), Gradle, aapt2, apksigner
+[2/6]  Android command line tools (Google)
+[3/6]  Android 35 platform + build-tools 35
+       (PC wale tools phone pe nahi chalte → Termux wale aapt2 lagta hai)
+[4/6]  ~/.gradle/gradle.properties (aapt2 + memory) + ANDROID_HOME / JAVA_HOME
+[5/6]  Test app ~/hello-hunter banake APK build karta hai
+[6/6]  Report
+```
+
+- Internet: ~1 GB, phone me jagah: ~1.5 GB, time: 5-20 min (internet pe depend)
+- Test APK: **Download/hello-hunter.apk** — Files app se kholo, install karo. Screen pe likha aayega: *"Ye app phone pe hi bana hai!"*
+- Pehla build 3-5 min leta hai (Gradle sab download karta hai), uske baad ka build jaldi
+
+**Apna koi bhi project build karna:**
+```bash
+cd ~/mera-app
+./gradlew assembleDebug
+# APK: app/build/outputs/apk/debug/app-debug.apk
 ```
 
 ---
@@ -138,8 +169,8 @@ ubntu         # Wapas Ubuntu mein jao
 | Category | Tools |
 |:---------|:------|
 | Shell | ZSH, Oh My Zsh, Powerlevel10k, zsh-autosuggestions |
-| Core | git, curl, wget, zip, unzip, tar, nano, vim |
-| Python | python3, pip, uv, flask, fastapi, requests, rich |
+| Core | git, curl, wget, zip, unzip, tar, nano, vim, ssh |
+| Python | python, pip, uv, flask, requests, httpx, uvicorn, rich (fastapi Ubuntu mein) |
 | Node.js | nodejs, npm, nodemon, pm2, yarn, serve |
 | Visual | figlet, lolcat (rainbow banner) |
 | Container | proot-distro, ubuntu |
@@ -150,9 +181,18 @@ ubntu         # Wapas Ubuntu mein jao
 |:---------|:------|
 | Shell | ZSH, Oh My Zsh, Powerlevel10k, zsh-autosuggestions |
 | Core | git, curl, wget, nano, vim, build-essential |
-| Python | python3, pip3, uv, venv, flask, fastapi, requests |
-| Node.js | nodejs, npm, nodemon, pm2, yarn |
+| Python | python3, ~/venv (apne aap chalu), uv, flask, fastapi, requests |
+| Node.js | nodejs (nvm LTS), npm, nodemon, pm2, yarn |
 | Visual | figlet, lolcat |
+
+### Android build (androidhunter.sh)
+
+| Category | Tools |
+|:---------|:------|
+| Java | openjdk-17 |
+| Build | Gradle (+ project mein Gradle 8.9 wrapper), Android Gradle Plugin 8.7, Kotlin 2.0 |
+| SDK | Android 35 platform, build-tools 35 (`~/android-sdk`) |
+| Phone tools | aapt2, apksigner (Termux wale, ARM ke liye) |
 
 ---
 
@@ -175,11 +215,10 @@ ubntu         # Wapas Ubuntu mein jao
 |:------|:--------|:-----|
 | `c` | `clear` | Screen saaf karo |
 | `update` | `apt update && apt upgrade -y` | Ubuntu update |
-| `py` | `python3` | Python |
-| `pip` | `pip3` | Pip |
+| `py` | `python` | Python (~/venv wala) |
 | `storage` | `cd /storage/emulated/0` | Internal storage |
 | `coding` | `cd /storage/emulated/0/coding` | Coding folder |
-| `activate` | `source ~/venv/bin/activate` | Virtual env activate |
+| `activate` | `source ~/venv/bin/activate` | Virtual env activate (waise apne aap hota hai) |
 
 ---
 
@@ -276,6 +315,45 @@ python app.py     # localhost:5000 pe run hoga
 ---
 
 ## 🔧 Troubleshooting
+
+### ❌ pkg update pe "File has unexpected size ... Mirror sync in progress?"
+
+**Cause:** Termux ne koi aisa mirror chuna jo us waqt update ho raha tha.
+`hunter.sh` ab khud default (Cloudflare) mirror lagata hai. Haath se theek karna ho to:
+```bash
+termux-change-repo
+# "Single mirror" → "default" chuno
+pkg update && pkg upgrade -y
+```
+
+### ❌ Upgrade ke beech "openssl.cnf / bash.bashrc ... (Y/I/N/O/D/Z)" sawaal
+
+`hunter.sh` mein ab ye sawaal nahi aata. Haath se upgrade karte waqt aaye to bas **Enter** dabao.
+
+### ❌ Ubuntu mein pip: "externally-managed-environment"
+
+Ubuntu 24.04+ system Python mein seedha `pip install` mana hai. `~/venv` use karo:
+```bash
+source ~/venv/bin/activate   # ubuntuhunter.sh ke baad ye apne aap hota hai
+pip install naam
+```
+
+### ❌ Banner toota hua / do lines mein bikhra dikhta hai
+
+Phone ki screen ~40 column ki hai aur bada font ~50 ka. Naya `.zshrc` patli screen pe chhota font lagata hai.
+Purana setup hai to `bash hunter.sh` (aur Ubuntu mein `bash /sdcard/ubuntuhunter.sh`) dobara chalao.
+
+### ❌ Gradle: "AAPT2 ... Daemon startup failed" / aapt2 error
+
+Gradle PC wala aapt2 download karta hai jo phone pe nahi chalta. Check karo:
+```bash
+cat ~/.gradle/gradle.properties   # isme android.aapt2FromMavenOverride=... line honi chahiye
+bash ~/androidhunter.sh           # na ho to dobara chalao
+```
+
+### ❌ Gradle build bahut slow / phone garam
+
+Pehla build 3-5 min normal hai (sab download hota hai). 6 GB+ RAM wala phone best hai. Build ke time baaki apps band rakho.
 
 ### ❌ P10k Warning: Console output during zsh initialization
 
@@ -374,7 +452,7 @@ figlet -f banner "YourName" | lolcat
 
 | | |
 |:--|:--|
-| **YouTube** | [@HunterIsLive](https://youtube.com/@HunterIsLive) |
+| **YouTube** | [@TheHunter-AI](https://youtube.com/@TheHunter-AI) |
 | **Website / Products** | [getmaya.online](https://getmaya.online) |
 | **GitHub** | [HunterisLive-1](https://github.com/HunterisLive-1) |
 | **Termux** | [termux.dev](https://termux.dev) |
@@ -385,5 +463,5 @@ figlet -f banner "YourName" | lolcat
 ---
 
 > 💜 **Agar ye helpful laga — like, subscribe, aur share zaroor karna!**
-> Channel link: **youtube.com/@HunterIsLive**
+> Channel link: **youtube.com/@TheHunter-AI**
 > 

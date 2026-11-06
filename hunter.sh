@@ -9,82 +9,109 @@ RED='\033[0;31m'
 BOLD='\033[1m'
 NC='\033[0m'
 
+# Jo step fail hua uska naam yahan jaata hai; end me sach bataenge
+FAILS=()
+ok()   { echo -e "${GREEN}      ✓ $1${NC}"; }
+fail() { FAILS+=("$1"); echo -e "${RED}      ✗ $1 fail hua${NC}"; }
+
+# Phone ki screen ~40 column chaudi hoti hai, isliye box 40 ka
+box() {
+    local bar; bar=$(printf '═%.0s' $(seq 38))
+    echo "╔${bar}╗"
+    for line in "$@"; do
+        if [ "$line" = "--" ]; then echo "╠${bar}╣"; else printf "║ %-36s ║\n" "$line"; fi
+    done
+    echo "╚${bar}╝"
+}
+
 clear
 
 echo -e "${PURPLE}${BOLD}"
-echo "╔═══════════════════════════════════════════════════╗"
-echo "║     HunterIsLive — Termux Setup Script v1.1      ║"
-echo "╠═══════════════════════════════════════════════════╣"
-echo "║  YouTube : @HunterIsLive                         ║"
-echo "║  GitHub  : github.com/HunterisLive-1             ║"
-echo "║  Website : getmaya.online                        ║"
-echo "╚═══════════════════════════════════════════════════╝"
+box "The Hunter Ai - Termux Setup v1.2" -- "YouTube : @TheHunter-AI" "GitHub  : HunterisLive-1" "Website : getmaya.online"
 echo -e "${NC}"
 sleep 1
 
 # ─── Banner Name ─────────────────────────────────────────────────────
-echo -e "${CYAN}${BOLD}Apna naam/handle enter karo (figlet banner ke liye):${NC}"
-echo -e "${YELLOW}Example: Hunter  |  Rahul  |  Dev  (space mat use karna)${NC}"
+echo -e "${CYAN}${BOLD}Apna naam likho (banner ke liye):${NC}"
+echo -e "${YELLOW}Jaise: Hunter, Rahul, Dev (bina space)${NC}"
 echo ""
 printf "➜ Your Name: "
 read USER_BANNER_NAME
+USER_BANNER_NAME="${USER_BANNER_NAME// /}"
 [ -z "$USER_BANNER_NAME" ] && USER_BANNER_NAME="Hunter"
-
-# Save for Ubuntu script
-mkdir -p /sdcard 2>/dev/null
-echo "$USER_BANNER_NAME" > /sdcard/hunter_config.txt
-
-echo ""
-echo -e "${GREEN}✓ Banner set: ${BOLD}${USER_BANNER_NAME}${NC}"
-echo -e "${GREEN}✓ Config saved to /sdcard/hunter_config.txt${NC}"
+# Pehle Termux ke andar save (yahan permission nahi chahiye)
+echo "$USER_BANNER_NAME" > ~/.hunter_name
+ok "Banner set: ${USER_BANNER_NAME}"
 echo ""
 sleep 1
 
 # ─── Step 1: Storage ─────────────────────────────────────────────────
 echo -e "${CYAN}${BOLD}[1/9] Storage access setup...${NC}"
-termux-setup-storage
-sleep 3
+can_write_sdcard() { touch /sdcard/.hunter_probe 2>/dev/null && rm -f /sdcard/.hunter_probe; }
+STORAGE_OK=0
+if can_write_sdcard && [ -d ~/storage ]; then
+    STORAGE_OK=1    # script dobara chal raha hai: permission pehle se hai, sawaal mat poochho
+else
+    echo -e "${YELLOW}      Popup aayega → Allow dabao${NC}"
+    termux-setup-storage
+    # Allow dabane tak ruko (60 second tak)
+    for i in $(seq 1 60); do
+        if can_write_sdcard; then STORAGE_OK=1; break; fi
+        sleep 1
+    done
+fi
+if [ "$STORAGE_OK" = 1 ]; then
+    echo "$USER_BANNER_NAME" > /sdcard/hunter_config.txt && ok "Storage mil gaya, naam /sdcard/hunter_config.txt me save"
+else
+    fail "Storage permission (baad me: termux-setup-storage)"
+fi
 
 # ─── Step 2: System Update ───────────────────────────────────────────
+# Upgrade ke beech config file wale sawaal (openssl.cnf, bash.bashrc...) aate hain;
+# confdef+confold = wahi jo Enter dabane pe hota hai, bas script rukta nahi
 echo -e "${CYAN}${BOLD}[2/9] System update & upgrade...${NC}"
-pkg update -y && pkg upgrade -y
+# Termux khud koi bhi random mirror chunta hai; jo mirror us waqt sync ho raha ho
+# us pe "File has unexpected size" aata hai aur update fail. User ne khud mirror
+# nahi chuna ho (termux-change-repo) to default wala lagao — Cloudflare, sabse stable.
+# (pkg pehle se chuna mirror kuch ghante tak nahi badalta, isliye sources.list bhi seedha likhte hain)
+TM="$PREFIX/etc/termux"
+if [ ! -e "$TM/chosen_mirrors" ] && [ -f "$TM/mirrors/default" ]; then
+    MAIN_URL=$(sed -n 's/^MAIN="\(.*\)"$/\1/p' "$TM/mirrors/default")
+    ln -sf "$TM/mirrors/default" "$TM/chosen_mirrors"
+    if [ -n "$MAIN_URL" ]; then
+        echo "deb $MAIN_URL stable main" > "$PREFIX/etc/apt/sources.list" && ok "Mirror: $MAIN_URL"
+    fi
+fi
+pkg update -y || { sleep 3; pkg update -y; } || fail "pkg update"
+apt-get -y -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold full-upgrade \
+    && ok "System upgrade" || fail "System upgrade"
 
 # ─── Step 3: Core Packages ───────────────────────────────────────────
 echo -e "${CYAN}${BOLD}[3/9] Core packages install ho rahe hain...${NC}"
-pkg install -y git curl wget zip unzip tar nano vim figlet ruby zsh python nodejs proot-distro openssh
+pkg install -y git curl wget zip unzip tar nano vim figlet ruby zsh python python-pip nodejs proot-distro openssh uv \
+    && ok "Core packages" || fail "Core packages"
 
 echo -e "${CYAN}      lolcat install ho raha hai...${NC}"
-gem install lolcat
+gem install lolcat && ok "lolcat" || fail "lolcat"
 
 # ─── Step 4: Python Tools ────────────────────────────────────────────
 # Note: fastapi/pydantic-core skip — Rust chahiye jo Termux mein nahi
 # Woh Ubuntu mein install honge
 echo -e "${CYAN}${BOLD}[4/9] Python tools install ho rahe hain...${NC}"
-pip install requests httpx flask uvicorn python-dotenv rich
-
-# uv — SAHI tarika: install script se (pip se nahi, Rust build fail hota)
-echo -e "${CYAN}      uv (fast pip alternative) install ho raha hai...${NC}"
-if command -v curl &>/dev/null; then
-    curl -LsSf https://astral.sh/uv/install.sh | sh 2>/dev/null \
-        && echo -e "${GREEN}      ✓ uv installed via curl${NC}" \
-        || echo -e "${YELLOW}      uv skip — baad mein: wget -qO- https://astral.sh/uv/install.sh | sh${NC}"
-else
-    wget -qO- https://astral.sh/uv/install.sh | sh 2>/dev/null \
-        && echo -e "${GREEN}      ✓ uv installed via wget${NC}" \
-        || echo -e "${YELLOW}      uv skip — ignore karo${NC}"
-fi
+pip install requests httpx flask uvicorn python-dotenv rich && ok "Python tools" || fail "Python tools"
+# uv Termux ke apne package se aata hai (step 3); astral wala installer Android pe nahi chalta
+command -v uv >/dev/null && ok "uv $(uv --version 2>/dev/null | cut -d' ' -f2)" || fail "uv"
 
 # ─── Step 5: Node.js Global Tools ────────────────────────────────────
 echo -e "${CYAN}${BOLD}[5/9] Node.js global tools install ho rahe hain...${NC}"
-npm install -g nodemon pm2 serve 2>/dev/null || true
+npm install -g nodemon pm2 serve yarn && ok "nodemon pm2 serve yarn" || fail "Node tools"
 
 # ─── Step 6: Nerd Font — P10k ke liye ZAROORI ────────────────────────
 echo -e "${CYAN}${BOLD}[6/9] Nerd Font install ho raha hai (P10k icons ke liye)...${NC}"
 mkdir -p ~/.termux
 wget -q -O ~/.termux/font.ttf \
   "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf" \
-  && echo -e "${GREEN}      ✓ MesloLGS Nerd Font installed${NC}" \
-  || echo -e "${YELLOW}      Font download failed — baad mein manually karo${NC}"
+  && ok "MesloLGS Nerd Font" || fail "Font"
 
 # ─── Step 7: Oh My Zsh ───────────────────────────────────────────────
 echo -e "${CYAN}${BOLD}[7/9] Oh My Zsh + Powerlevel10k + Plugins...${NC}"
@@ -94,17 +121,18 @@ if [ ! -d "$HOME/.oh-my-zsh" ]; then
 else
     echo -e "${YELLOW}      Oh My Zsh already installed — skip${NC}"
 fi
+[ -f "$HOME/.oh-my-zsh/oh-my-zsh.sh" ] && ok "Oh My Zsh" || fail "Oh My Zsh"
 
 P10K_DIR="${HOME}/.oh-my-zsh/custom/themes/powerlevel10k"
 if [ ! -d "$P10K_DIR" ]; then
-    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$P10K_DIR"
+    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$P10K_DIR" && ok "Powerlevel10k" || fail "Powerlevel10k"
 else
     echo -e "${YELLOW}      Powerlevel10k already installed — skip${NC}"
 fi
 
 AS_DIR="${HOME}/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
 if [ ! -d "$AS_DIR" ]; then
-    git clone https://github.com/zsh-users/zsh-autosuggestions "$AS_DIR"
+    git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions "$AS_DIR" && ok "zsh-autosuggestions" || fail "zsh-autosuggestions"
 else
     echo -e "${YELLOW}      zsh-autosuggestions already installed — skip${NC}"
 fi
@@ -113,20 +141,14 @@ fi
 echo -e "${CYAN}${BOLD}[8/9] .zshrc configure ho raha hai...${NC}"
 rm -f ~/.cache/p10k-instant-prompt-*.zsh 2>/dev/null
 
-# Static part — quoted heredoc (no variable expansion)
 cat > ~/.zshrc << 'STATIC_ZSHRC'
 # ═══════════════════════════════════════════════════
-#  HunterIsLive — Termux ZSH Config v1.1
-#  YouTube : @HunterIsLive | getmaya.online
+#  The Hunter Ai — Termux ZSH Config v1.2
+#  YouTube : @TheHunter-AI | getmaya.online
 # ═══════════════════════════════════════════════════
 
 # MUST BE FIRST — P10k warning fix
 typeset -g POWERLEVEL9K_INSTANT_PROMPT=off
-
-# Powerlevel10k instant prompt
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
 
 # Oh My Zsh
 export ZSH="$HOME/.oh-my-zsh"
@@ -146,61 +168,73 @@ alias ubntu-code='proot-distro login ubuntu --work-dir /sdcard/coding'
 export PATH="$HOME/.cargo/bin:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
 export PATH=/data/data/com.termux/files/home/.opencode/bin:$PATH
-STATIC_ZSHRC
-
-# Dynamic part — $USER_BANNER_NAME expands here
-cat >> ~/.zshrc << DYNAMIC_ZSHRC
 
 # ===== HUNTER BANNER =====
+# Phone pe screen patli hai: 60 column se kam ho to chhota font, warna banner toot jaata hai
+_hb_font=big; [ "${COLUMNS:-80}" -lt 60 ] && _hb_font=small
 echo -e "\e[1;32m"
-figlet -c -f big "$USER_BANNER_NAME" | lolcat
+figlet -c -w "${COLUMNS:-80}" -f "$_hb_font" "$(cat ~/.hunter_name 2>/dev/null || echo Hunter)" | lolcat
 echo -e "\e[0m"
+unset _hb_font
 # =========================
 
 # P10k config (p10k configure se generate hoti hai)
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-DYNAMIC_ZSHRC
+STATIC_ZSHRC
+ok ".zshrc"
 
 # ─── Step 9: Final Setup ─────────────────────────────────────────────
 echo -e "${CYAN}${BOLD}[9/9] Final setup...${NC}"
 
 touch ~/.hushlogin
-echo -e "${GREEN}      ✓ MOTD disabled${NC}"
+ok "MOTD disabled"
 
-chsh -s zsh 2>/dev/null && echo -e "${GREEN}      ✓ ZSH default shell${NC}" || true
+chsh -s zsh 2>/dev/null && ok "ZSH default shell" || fail "ZSH default shell"
 
-termux-reload-settings 2>/dev/null && echo -e "${GREEN}      ✓ Font applied${NC}" || true
+termux-reload-settings 2>/dev/null && ok "Font applied" || true
 
-# Ubuntu install
-proot-distro install ubuntu 2>/dev/null \
-  && echo -e "${GREEN}      ✓ Ubuntu installed${NC}" \
-  || echo -e "${YELLOW}      Ubuntu already installed${NC}"
-
-# ubuntuhunter.sh copy to sdcard
-if [ -f "$(dirname $0)/ubuntuhunter.sh" ]; then
-    cp "$(dirname $0)/ubuntuhunter.sh" /sdcard/ubuntuhunter.sh
-    echo -e "${GREEN}      ✓ ubuntuhunter.sh → /sdcard/${NC}"
+# Ubuntu install — pehle dekho hai ya nahi, phir install; fail hua to sach batao
+if proot-distro list -q 2>/dev/null | grep -qx ubuntu; then
+    echo -e "${YELLOW}      Ubuntu already installed — skip${NC}"
+else
+    proot-distro install ubuntu && ok "Ubuntu installed" || fail "Ubuntu install"
 fi
+
+# Baaki do scripts: saath me download kiye hon to wahi, warna GitHub se
+# ubuntuhunter.sh → /sdcard (Ubuntu ke andar se dikhta hai), androidhunter.sh → Termux home
+BASE_URL="${HUNTER_BASE:-https://raw.githubusercontent.com/HunterisLive-1/Turmux-setup/main}"
+HERE="$(cd "$(dirname "$0")" && pwd)"
+get_script() {   # $1 = naam, $2 = kahan rakhna — hamesha naya wala (purana version na reh jaaye)
+    if [ -f "$HERE/$1" ] && [ "$HERE/$1" != "$2" ]; then
+        cp "$HERE/$1" "$2" && ok "$1 → $2" || fail "$1 copy"
+    elif wget -q -O "$2.new" "$BASE_URL/$1" && [ -s "$2.new" ]; then
+        mv -f "$2.new" "$2" && ok "$1 → $2"
+    else
+        rm -f "$2.new"; fail "$1 download"
+    fi
+}
+[ "$STORAGE_OK" = 1 ] && get_script ubuntuhunter.sh /sdcard/ubuntuhunter.sh
+get_script androidhunter.sh "$HOME/androidhunter.sh"
 
 # ─── Done! ───────────────────────────────────────────────────────────
 echo ""
-echo -e "${GREEN}${BOLD}"
-echo "╔═══════════════════════════════════════════════════╗"
-echo "║   ✅  TERMUX SETUP COMPLETE!                      ║"
-echo "╠═══════════════════════════════════════════════════╣"
-echo "║                                                   ║"
-echo "║   Ab ye karo (important!):                       ║"
-echo "║                                                   ║"
-echo "║   1. Termux restart karo                         ║"
-echo "║   2. ZSH open hone par: p10k configure           ║"
-echo "║   3. Wizard mein style choose karo               ║"
-echo "║                                                   ║"
-echo "║   Ubuntu Setup:                                  ║"
-echo "║   → proot-distro login ubuntu                    ║"
-echo "║   → bash /storage/emulated/0/ubuntuhunter.sh     ║"
-echo "║                                                   ║"
-echo "║   YouTube : @HunterIsLive                        ║"
-echo "║   Website : getmaya.online                       ║"
-echo "╚═══════════════════════════════════════════════════╝"
-echo -e "${NC}"
-echo -e "${YELLOW}${BOLD}Termux restart karo, phir 'p10k configure' run karo! 🔥${NC}"
+if [ ${#FAILS[@]} -eq 0 ]; then
+    echo -e "${GREEN}${BOLD}"
+    box "TERMUX SETUP COMPLETE!" -- \
+        "Ab ye karo:" \
+        "1. Termux band karke khol do" \
+        "2. Phir chalao: p10k configure" \
+        "" \
+        "Ubuntu setup:" \
+        "-> proot-distro login ubuntu" \
+        "-> bash /sdcard/ubuntuhunter.sh" \
+        "" \
+        "App banane ka setup (Termux me):" \
+        "-> bash ~/androidhunter.sh"
+    echo -e "${NC}"
+    echo -e "${YELLOW}${BOLD}Termux restart karo, phir 'p10k configure' run karo! 🔥${NC}"
+else
+    echo -e "${RED}${BOLD}Setup poora nahi hua. Ye fail hue:${NC}"
+    for f in "${FAILS[@]}"; do echo -e "${RED}  ✗ $f${NC}"; done
+    echo -e "${YELLOW}Internet check karo aur 'bash hunter.sh' dobara chalao — jo ho chuka hai wo skip hoga.${NC}"
+fi
