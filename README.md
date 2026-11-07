@@ -99,6 +99,18 @@ addwrapper
 
 ---
 
+## Sirf APK Banane Ka Setup (bina zsh / OpenCode)
+
+Sirf Java + Android SDK chahiye (jaise Maya se app banwane ke liye)? Ye ek command, koi sawaal nahi poochti:
+
+```bash
+curl -sL https://raw.githubusercontent.com/HunterisLive-1/Turmux-setup/main/android-setup.sh | bash
+```
+
+Aakhir mein `ANDROID_SETUP_OK` aaye to ready.
+
+---
+
 ## 🎨 Look Badalna Ho
 
 Script The Hunter Ai wala p10k look lagata hai. Apna look chuno:
